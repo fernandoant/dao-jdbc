@@ -6,6 +6,7 @@ import model.dao.DepartmentDAO;
 import model.entities.Department;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DepartmentDaoJDBC implements DepartmentDAO {
@@ -99,7 +100,37 @@ public class DepartmentDaoJDBC implements DepartmentDAO {
 
     @Override
     public List<Department> findAll() {
-        return null;
+        PreparedStatement st = null;
+        ResultSet rs = null;
+
+        try {
+            st = conn.prepareStatement(
+                    "SELECT department.* "
+                    + "FROM department "
+                    + "ORDER BY Name"
+            );
+
+            rs = st.executeQuery();
+
+            List<Department> list = new ArrayList<>();
+
+            if (rs.next()) {
+                do {
+                    Department dep = instantiateDepartment(rs);
+                    list.add(dep);
+                } while (rs.next());
+                return list;
+            }
+            return null;
+        }
+        catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        }
+        finally {
+            DB.closeStatement(st);
+            DB.closeResultSet(rs);
+        }
+
     }
 
     private Department instantiateDepartment(ResultSet rs) throws SQLException {
